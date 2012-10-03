@@ -25,6 +25,8 @@ from gpypi.ebuild import Ebuild
 from gpypi.portage_utils import PortageUtils
 from gpypi.utils import PortageFormatter, PortageStreamHandler
 
+# Portages' security level
+from portage.data import secpass, portage_gid
 
 log = logging.getLogger(__name__)
 
@@ -397,10 +399,11 @@ def main(args=sys.argv[1:]):
     else:
         logger.setLevel(logging.INFO)
 
-    # root must be used for write permission in overlay and for
+    # portage group access must be used for write permission in overlay and for
     # unpacking of ebuilds
-    if os.geteuid() != 0:
-        main_parser.error('Must be run as root.')
+    if secpass < 1:
+        log.warn('Should be run as root or in group ' + str(portage_gid) +
+                ". Expect more problems to come.\n")
 
     config_mgr = ConfigManager.load_from_ini(args.config_file)
     config_mgr.configs['argparse'] = Config.from_argparse(args)
